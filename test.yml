@@ -1,0 +1,10 @@
+service:
+  name: Microservice Test APIs
+  version: 1.0
+server:
+  appConnector:
+    port: 7000
+  resourceHandler:
+    resourceBase: /Users/dps/TestApp/files/
+    resourceCtx: /docs
+    restApiCtx: /api/

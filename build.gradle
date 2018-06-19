@@ -1,0 +1,84 @@
+import static org.gradle.api.JavaVersion.VERSION_1_8
+import com.github.jengelman.gradle.plugins.shadow.transformers.AppendingTransformer
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+ext {
+	projectName = 'sample-micro-api'
+}
+
+sourceCompatibility = VERSION_1_8
+targetCompatibility = VERSION_1_8
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+buildscript {
+    	repositories {
+		maven {
+                	url "http://jcenter.bintray.com/"
+		}
+		dependencies {
+			classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+		}
+	}
+}
+
+repositories { 
+	maven {
+        	url "http://repo.maven.apache.org/maven2/"
+	}
+}
+
+dependencies {
+		
+	compile('com.github.itzmedinesh:micro-api-core:1.0.1'){
+		transitive = false
+	}
+        
+    testCompile 'junit:junit:4.12'
+	testCompile 'org.springframework:spring-test:4.3.4.RELEASE'
+	testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-jdk-http:2.25.1'
+    testCompile 'org.glassfish.tyrus.bundles:tyrus-standalone-client:1.13.1'
+    testCompile 'org.hamcrest:hamcrest-all:1.1'
+}
+
+mainClassName = 'com.itzmeds.testapp.AppService'
+
+run {
+	args 'appconfig.yml'
+}
+
+shadowJar {
+	baseName = projectName
+	version = projectVersion
+	classifier = ''
+    	mergeServiceFiles()
+
+	manifest {
+ 		attributes 'Main-Class': mainClassName
+	}
+
+	transform(AppendingTransformer.class) {
+		resource = 'META-INF/spring.handlers'
+	}
+			      
+	transform(AppendingTransformer.class) {
+  		resource = 'META-INF/spring.schemas'
+ 	}
+}
+
+task zip(type: Zip) {
+   	baseName = projectName
+	from shadowJar.outputs.files
+
+	from ('.'){
+	  	include "*.yml"
+		include 'runService'
+		include 'version'
+	}
+}																																																					
+	
+artifacts {
+	 archives zip
+}
